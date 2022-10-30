@@ -684,6 +684,19 @@ class EnvoyReader:  # pylint: disable=too-many-instance-attributes
         lifetime_consumption = raw_json["consumption"][0]["whLifetime"]
         return int(lifetime_consumption)
 
+    async def inverters_lifetime_production(self):
+            """Running getData() beforehand will set self.enpoint_type and self.isDataRetrieved"""
+            """so that this method will only read data from stored variables"""
+
+            if self.endpoint_type == ENVOY_MODEL_S:
+                raw_json = self.endpoint_production_json_results.json()
+                inverters_lifetime_production = raw_json["production"][0]["whLifetime"]
+            else:
+                inverters_lifetime_production = 0
+
+            return int(inverters_lifetime_production)
+
+
     async def inverters_production(self):
         """Running getData() beforehand will set self.enpoint_type and self.isDataRetrieved"""
         """so that this method will only read data from stored variables"""
@@ -763,6 +776,7 @@ class EnvoyReader:  # pylint: disable=too-many-instance-attributes
                 self.lifetime_consumption(),
                 self.inverters_production(),
                 self.battery_storage(),
+                self.inverters_lifetime_production(),
                 return_exceptions=False,
             )
         )
@@ -786,6 +800,7 @@ class EnvoyReader:  # pylint: disable=too-many-instance-attributes
         else:
             print(f"inverters_production:    {results[8]}")
         print(f"battery_storage:         {results[9]}")
+        print(f"inverters_lifetime_production:         {results[10]}")
 
 
 if __name__ == "__main__":
