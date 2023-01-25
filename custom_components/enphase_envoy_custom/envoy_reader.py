@@ -189,15 +189,15 @@ class EnvoyReader:  # pylint: disable=too-many-instance-attributes
                     resp = await client.get(
                         url, headers=self._authorization_header, timeout=30, **kwargs
                     )
-                    if resp.status_code == 401 and attempt < 2:
-                        _LOGGER.debug(
-                            "Received 401 from Envoy; refreshing token, attempt %s of 2",
-                            attempt+1,
-                            )
-                        could_refresh_cookies = await self._refresh_token_cookies()
-                        if not could_refresh_cookies:
-                            await self._getEnphaseToken()
-                        continue
+                    # if resp.status_code == 401 and attempt < 2:
+                    #     _LOGGER.debug(
+                    #         "Received 401 from Envoy; refreshing token, attempt %s of 2",
+                    #         attempt+1,
+                    #         )
+                    #     could_refresh_cookies = await self._refresh_token_cookies()
+                    #     if not could_refresh_cookies:
+                    #         await self._getEnphaseToken()
+                    #     continue
                     _LOGGER.debug("Fetched from %s: %s: %s", url, resp, resp.text)
                     return resp
             except httpx.TransportError:
@@ -360,22 +360,23 @@ class EnvoyReader:  # pylint: disable=too-many-instance-attributes
         """to fetching inverter data."""
 
         # Check if the Secure flag is set
-        if self.username != '' and self.https_flag == "s":
-            _LOGGER.debug("Checking Token value: %s", self._token)
-            # Check if a token has already been retrieved
-            if self._token == "":
-                _LOGGER.debug("Found empty token: %s", self._token)
-                await self._getEnphaseToken()
-            else:
-                _LOGGER.debug("Token is populated: %s", self._token)
-                if self._is_enphase_token_expired(self._token):
-                    _LOGGER.debug("Found Expired token - Retrieving new token")
-                    await self._getEnphaseToken()
+        # if self.username != '' and self.https_flag == "s":
+        #     _LOGGER.debug("Checking Token value: %s", self._token)
+        #     # Check if a token has already been retrieved
+        #     if self._token == "":
+        #         _LOGGER.debug("Found empty token: %s", self._token)
+        #         await self._getEnphaseToken()
+        #     else:
+        #         _LOGGER.debug("Token is populated: %s", self._token)
+        #         if self._is_enphase_token_expired(self._token):
+        #             _LOGGER.debug("Found Expired token - Retrieving new token")
+        #             await self._getEnphaseToken()
 
-        if not self.endpoint_type:
-            await self.detect_model()
-        else:
-            await self._update()
+        # if not self.endpoint_type:
+        #     await self.detect_model()
+        # else:
+        
+        await self._update()
 
         if not self.get_inverters or not getInverters:
             return
