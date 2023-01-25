@@ -103,7 +103,7 @@ class EnvoyReader:  # pylint: disable=too-many-instance-attributes
         self.username = username
         self.password = password
         self.get_inverters = inverters
-        self.endpoint_type = None
+        self.endpoint_type = ENVOY_MODEL_S
         self.serial_number_last_six = None
         self.endpoint_production_json_results = None
         self.endpoint_production_v1_results = None
@@ -360,7 +360,7 @@ class EnvoyReader:  # pylint: disable=too-many-instance-attributes
         """to fetching inverter data."""
 
         # Check if the Secure flag is set
-        if self.https_flag == "s":
+        if self.username != '' and self.https_flag == "s":
             _LOGGER.debug("Checking Token value: %s", self._token)
             # Check if a token has already been retrieved
             if self._token == "":
