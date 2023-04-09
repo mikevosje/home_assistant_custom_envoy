@@ -60,7 +60,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
                 elif description.key == "batteries":
                     battery_data = await envoy_reader.battery_storage()
-                    if isinstance(battery_data, list):
+                    if isinstance(battery_data, list) and len(battery_data) > 0:
                         battery_dict = {}
                         for item in battery_data:
                             battery_dict[item["serial_num"]] = item
@@ -105,7 +105,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         NAME: name,
     }
 
-    hass.config_entries.async_setup_platforms(entry, PLATFORMS)
+    await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
     return True
 
