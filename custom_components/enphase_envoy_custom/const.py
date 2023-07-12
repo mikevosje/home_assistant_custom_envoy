@@ -39,7 +39,7 @@ SENSORS = (
     SensorEntityDescription(
         key="inverters_lifetime_production",
         name="Inverters Lifetime Production",
-        native_unit_of_measurement=ENERGY_WATT_HOUR,
+        native_unit_of_measurement=UnitOfEnergy.WATT_HOUR,
         state_class=SensorStateClass.TOTAL_INCREASING,
         device_class=SensorDeviceClass.ENERGY,
     ),
