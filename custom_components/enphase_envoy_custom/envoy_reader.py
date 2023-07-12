@@ -689,6 +689,23 @@ class EnvoyReader:  # pylint: disable=too-many-instance-attributes
         lifetime_consumption = raw_json["consumption"][0]["whLifetime"]
         return int(lifetime_consumption)
 
+    async def lifetime_consumption_phase(self, phase):
+        """Running getData() beforehand will set self.enpoint_type and self.isDataRetrieved"""
+        """so that this method will only read data from stored variables"""
+        phase_map = {"lifetime_consumption_l1": 0,"lifetime_consumption_l2": 1,"lifetime_consumption_l3": 2}
+
+        """Only return data if Envoy supports Consumption"""
+        if self.endpoint_type in ENVOY_MODEL_C:
+            return None
+
+        raw_json = self.endpoint_production_json_results.json()
+        try:
+            return int(
+                raw_json["consumption"][0]["lines"][phase_map[phase]]["whLifetime"]
+            )
+        except (KeyError, IndexError):
+            return None
+            
     async def inverters_lifetime_production(self):
             """Running getData() beforehand will set self.enpoint_type and self.isDataRetrieved"""
             """so that this method will only read data from stored variables"""
