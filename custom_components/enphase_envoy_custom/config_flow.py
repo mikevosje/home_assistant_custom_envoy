@@ -10,13 +10,15 @@ import httpx
 import voluptuous as vol
 
 from homeassistant import config_entries
+from homeassistant.components import network
 from homeassistant.components import zeroconf
 from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PASSWORD, CONF_USERNAME
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.data_entry_flow import FlowResult
 from homeassistant.exceptions import HomeAssistantError
+from homeassistant.util.network import is_ipv4_address
 
-from .const import DOMAIN, CONF_SERIAL, CONF_USE_ENLIGHTEN
+from .const import DOMAIN, CONF_SERIAL, CONF_USE_ENLIGHTEN, DEFAULT_SCAN_INTERVAL
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -47,6 +49,12 @@ async def validate_input(hass: HomeAssistant, data: dict[str, Any]) -> EnvoyRead
 
     return envoy_reader
 
+async def ipv4asdefault(hass: HomeAssistant):
+    adapters = await network.async_get_adapters(hass)
+    for adapter in adapters:
+        if adapter["default"]:
+            return adapter["ipv4"] is not None
+    return False
 
 class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Handle a config flow for Enphase Envoy."""
@@ -93,12 +101,10 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         serial = discovery_info.properties["serialnum"]
         await self.async_set_unique_id(serial)
 
-        #75 If system option to enable newly discoverd entries is off (by user) and uniqueid is this serial then skip updating ip
-        for entry in self._async_current_entries(include_ignore=False):
-            if entry.pref_disable_new_entities and entry.unique_id is not None:
-                if entry.unique_id == serial:
-                    _LOGGER.debug("Envoy autodiscovery/ip update disabled for: %s, IP detected: %s %s",serial, discovery_info.host,entry.unique_id)
-                    return self.async_abort(reason="pref_disable_new_entities")
+        ipv4_default = await ipv4asdefault(self.hass)
+
+        if ipv4_default and not is_ipv4_address(discovery_info.host):
+            return self.async_abort(reason="not_ipv4_address")
                 
         # autodiscovery is updating the ip address of an existing envoy with matching serial to new detected ip adress
         self.ip_address = discovery_info.host
@@ -196,6 +202,37 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             errors=errors,
         )
 
+    @staticmethod
+    @callback
+    def async_get_options_flow(config_entry):
+        return EnvoyOptionsFlowHandler(config_entry)
+
+class EnvoyOptionsFlowHandler(config_entries.OptionsFlow):
+    """Envoy config flow options handler."""
+
+    def __init__(self, config_entry):
+        """Initialize Envoy options flow."""
+        self.config_entry = config_entry
+
+    async def async_step_init(self, _user_input=None):
+        """Manage the options."""
+        return await self.async_step_user()
+
+    async def async_step_user(self, user_input=None):
+        """Handle a flow initialized by the user."""
+
+        if user_input is not None:
+            return self.async_create_entry(title="", data=user_input)
+
+        schema = {
+            vol.Optional(
+                "data_interval",
+                default=self.config_entry.options.get(
+                    "data_interval", DEFAULT_SCAN_INTERVAL
+                ),
+            ): vol.All(vol.Coerce(int), vol.Range(min=5)),
+        }
+        return self.async_show_form(step_id="user", data_schema=vol.Schema(schema))
 
 class CannotConnect(HomeAssistantError):
     """Error to indicate we cannot connect."""

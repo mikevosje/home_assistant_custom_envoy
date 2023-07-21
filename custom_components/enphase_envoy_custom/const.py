@@ -26,6 +26,8 @@ ICON = "mdi:flash"
 COORDINATOR = "coordinator"
 NAME = "name"
 
+DEFAULT_SCAN_INTERVAL = 60  # default in seconds
+
 CONF_SERIAL = "serial"
 CONF_USE_ENLIGHTEN = "use_enlighten"
 
@@ -47,7 +49,7 @@ SENSORS = (
         key="seven_days_production",
         name="Last Seven Days Energy Production",
         native_unit_of_measurement=UnitOfEnergy.WATT_HOUR,
-        state_class=SensorStateClass.TOTAL_INCREASING,
+        state_class=SensorStateClass.TOTAL,
         device_class=SensorDeviceClass.ENERGY,
     ),
     SensorEntityDescription(
@@ -109,6 +111,14 @@ SENSORS = (
         native_unit_of_measurement=UnitOfEnergy.WATT_HOUR,
         state_class=SensorStateClass.TOTAL,
         device_class=SensorDeviceClass.ENERGY
+    ),
+)
+
+BINARY_SENSORS = (
+    BinarySensorEntityDescription(
+        key="grid_status",
+        name="Grid Status",
+        device_class=BinarySensorDeviceClass.CONNECTIVITY,
     ),
 )
 
@@ -249,10 +259,4 @@ BATTERY_ENERGY_CHARGED_SENSOR = SensorEntityDescription(
     native_unit_of_measurement=UnitOfEnergy.WATT_HOUR,
     state_class=SensorStateClass.TOTAL,
     device_class=SensorDeviceClass.ENERGY
-)
-
-GRID_STATUS_BINARY_SENSOR = BinarySensorEntityDescription(
-    key="grid_status",
-    name="Grid Status",
-    device_class=BinarySensorDeviceClass.CONNECTIVITY
 )
